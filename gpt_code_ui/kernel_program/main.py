@@ -19,6 +19,7 @@ from dotenv import load_dotenv
 load_dotenv('.env')
 
 import kernel_program.kernel_manager as kernel_manager
+import kernel_program.kernel_manager as kernel_manager
 import kernel_program.config as  config
 import kernel_program.utils as utils
 

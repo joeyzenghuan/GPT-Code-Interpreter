@@ -16,8 +16,16 @@ from jupyter_client import BlockingKernelClient
 from dotenv import load_dotenv
 load_dotenv('.env')
 
-import kernel_program.utils as utils
-import kernel_program.config as config
+# import kernel_program.utils as utils
+# import kernel_program.config as config
+
+from . import utils as utils
+from . import  config as config
+
+# from kernel_program import utils
+# from  kernel_program import config
+
+
 
 # Set up globals
 messaging = None

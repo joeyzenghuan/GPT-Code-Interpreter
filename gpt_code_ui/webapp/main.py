@@ -15,10 +15,59 @@ from collections import deque
 from flask_cors import CORS
 from flask import Flask, request, jsonify, send_from_directory, Response
 from dotenv import load_dotenv
-from .prompt import code_prompt, error_code_prompt
-from .openAIRoundRobin import get_openaiByRoundRobinMode,isRoundRobinMode
+# from gpt_code_ui.webapp.prompt import code_prompt, error_code_prompt
+# from gpt_code_ui.webapp.openAIRoundRobin import get_openaiByRoundRobinMode,isRoundRobinMode
 
-from kernel_program.main import APP_PORT as KERNEL_APP_PORT
+from .openAIRoundRobin import get_openaiByRoundRobinMode,isRoundRobinMode
+from .prompt import code_prompt, error_code_prompt
+
+
+
+import json
+import os
+import logging
+import openai as roundRobinOpenAI
+
+log = logging.getLogger('openAIRoundRobin')
+# log.setLevel(os.getenv("OPENAI_API_LOGLEVEL").upper())
+log.setLevel("DEBUG")
+AZURE_OPENAI_SERVICES = json.loads(os.environ.get("AZURE_OPENAI_SERVICES", "[]"))
+openAICallCount = 0
+openAICount= len(AZURE_OPENAI_SERVICES)
+
+roundRobinOpenAI.api_type="azure"
+roundRobinOpenAI.api_version = os.environ.get("OPENAI_API_VERSION"),
+roundRobinOpenAI.log= os.getenv("OPENAI_API_LOGLEVEL")
+
+def isRoundRobinMode():
+    global openAICount
+    log.info(">>>>>>>openAICount: %s" % openAICount)
+    return openAICount > 0
+
+def get_openaiByRoundRobinMode():
+    global openAICallCount
+    global openAICount
+
+    log.info("openAICallCount: %s" % openAICallCount)
+    index = openAICallCount % openAICount
+    log.info("openAICall index: %s" % index)
+    openAICallCount += 1
+    roundRobinOpenAI.api_key = AZURE_OPENAI_SERVICES[index].get("OPENAI_API_KEY")
+    roundRobinOpenAI.api_base = AZURE_OPENAI_SERVICES[index].get("OPENAI_API_BASE")
+    return roundRobinOpenAI
+
+# from . import openAIRoundRobin
+
+
+
+
+
+
+
+
+
+
+from gpt_code_ui.kernel_program.main import APP_PORT as KERNEL_APP_PORT
 
 load_dotenv('.env')
 
@@ -121,7 +170,7 @@ code_generate_retry=2
 # 代码重试计数
 code_generate_count = 0
 
-async def get_code(user_prompt,user_openai_key=None, model="gpt-3.5-turbo",user_prompt_suffix=None):
+async def get_code(user_prompt,user_openai_key=None, model="gpt-35-turbo-0301",user_prompt_suffix=None):
     detectedLanguage = detect_language(user_prompt)
     if user_prompt_suffix:
         prompt = code_prompt.format(history=message_buffer.get_string(), user_prompt=user_prompt + user_prompt_suffix,user_language=detectedLanguage)

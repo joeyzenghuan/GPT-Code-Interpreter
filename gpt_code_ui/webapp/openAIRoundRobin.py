@@ -4,7 +4,8 @@ import logging
 import openai as roundRobinOpenAI
 
 log = logging.getLogger('openAIRoundRobin')
-log.setLevel(os.getenv("OPENAI_API_LOGLEVEL").upper())
+# log.setLevel(os.getenv("OPENAI_API_LOGLEVEL").upper())
+log.setLevel("DEBUG")
 AZURE_OPENAI_SERVICES = json.loads(os.environ.get("AZURE_OPENAI_SERVICES", "[]"))
 openAICallCount = 0
 openAICount= len(AZURE_OPENAI_SERVICES)
